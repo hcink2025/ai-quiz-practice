@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI易错题练习系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-item .label {
+            color: #666;
+            font-size: 14px;
+        }
+        .stat-item .value {
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .progress-bar {
+            background: #e9ecef;
+            height: 10px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        .question-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .question-text {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+        .option {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        .option.selected {
+            border-color: #667eea;
+            background: #e8f0fe;
+        }
+        .option.correct {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .option.wrong {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        .option-key {
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        .option-text {
+            color: #333;
+            font-size: 15px;
+        }
+        .answer-reveal {
+            color: #28a745;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 8px;
+            display: none;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 12px 30px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .result-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            text-align: center;
+            z-index: 1000;
+        }
+        .result-modal h2 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        .result-modal .score {
+            font-size: 48px;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .result-modal .detail {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .mode-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-btn.active {
+            border-color: #667eea;
+            background: #e8f0fe;
+            color: #667eea;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 AI易错题练习系统</h1>
+            <p>共60道题目 | AI人工智能相关知识</p>
+        </div>
+
+        <div class="mode-selector">
+            <button class="mode-btn active" onclick="setMode('practice')">练习模式</button>
+            <button class="mode-btn" onclick="setMode('exam')">考试模式</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="label">当前进度</div>
+                <div class="value" id="progress">0/60</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">正确率</div>
+                <div class="value" id="accuracy">0%</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">已答题</div>
+                <div class="value" id="answered">0</div>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <div id="questionsContainer"></div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="submitAll()">提交答案</button>
+            <button class="btn btn-secondary" onclick="resetAll()">重新开始</button>
+            <button class="btn btn-success" onclick="showAllAnswers()">显示答案</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="result-modal" id="resultModal">
+        <h2>🎉 练习完成！</h2>
+        <div class="score" id="finalScore">0/60</div>
+        <div class="detail" id="resultDetail">正确率: 0%</div>
+        <button class="btn btn-primary" onclick="closeModal()">继续练习</button>
+    </div>
+
+    <script>
+        const questions = [
+            {"id":20,"question":"AI系统运维软件主要针对哪些人群（）.","options":{"A":"AI相关领域的专业人士","B":"基础的IT运维人员","C":"高级的IT运维人员","D":"所有的IT人员"},"answer":"B"},
+            {"id":29,"question":"以下选项中，不属于概念设计常用方法的是（）.","options":{"A":"头脑风暴","B":"角色扮演","C":"用户研究","D":"故事板"},"answer":"C"},
+            {"id":38,"question":"大约80%的（）问题可以通过使用低保真原型应用来解决.","options":{"A":"产品设计","B":"产品开发","C":"产品质量","D":"产品创新"},"answer":"A"},
+            {"id":50,"question":"在AI系统运维软件中，下列哪个工具可用于实现自动化部署（）.","options":{"A":"Jenkins","B":"Promethus","C":"Kibana","D":"Nagios"},"answer":"A"},
+            {"id":54,"question":"AI系统运维软件中，下列哪个选项可用于定位问题并进行故障排除（）.","options":{"A":"Remotemonitoring","B":"Troubleshootingguide","C":"System snapshot","D":"Applicationfirewall"},"answer":"A"},
+            {"id":92,"question":"AI系统运维软件的自动化功能主要涉及以下哪些方面（）.","options":{"A":"配置管理","B":"虚拟化技术","C":"自动扩展","D":"批量处理"},"answer":"D"},
+            {"id":94,"question":"下列哪个命令可以查看AI系统运行中的所有进程信息（）.","options":{"A":"top","B":"ps","C":"ls","D":"rm"},"answer":"B"},
+            {"id":122,"question":"在AI系统中，下列哪个命令可以用来查看网络连接情况（）.","options":{"A":"netstat","B":"dig","C":"nslookup","D":"host"},"answer":"A"},
+            {"id":123,"question":"下列哪个命令可以用来查看当前AI系统中的用户（）.","options":{"A":"whoami","B":"who","C":"users","D":"uptime"},"answer":"B"},
+            {"id":156,"question":"AI系统的运维软件如何识别和处置诊断问题（）.","options":{"A":"根据固定规则和权重进行分类和重要性排序","B":"通过解析可用的日志和数据，检测开发模式和异常情况","C":"用AI算法监控用户反馈和修复日志，并分类、排序和优先处理","D":"全部都不对"},"answer":"C"},
+            {"id":157,"question":"AI系统的运维软件中，什么是\"智能压缩\"（）.","options":{"A":"数据压缩算法","B":"资源调节手段","C":"加速服务器响应时间","D":"自动转化缓存"},"answer":"B"},
+            {"id":161,"question":"AI系统的运维软件中，什么是\"预测分析\"（）.","options":{"A":"基于历史数据预测未来状态的能力","B":"分析异常事件并预测系统的未来状况","C":"预测流量峰值并相应地扩大资源","D":"按照用户使用行为分析服务器的负载情况"},"answer":"A"},
+            {"id":163,"question":"AI系统的运维软件如何确保高可用性（）.","options":{"A":"通过集中存储和预测分析实现","B":"提高并发性","C":"提供多个备份","D":"动态资源调节"},"answer":"C"},
+            {"id":192,"question":"在AI系统运维中，如何确保系统的正常运作（）.","options":{"A":"定期联络用户并汇报系统的使用情况","B":"建立自动化流程进行系统监控","C":"采用更高安全措施增强系统鲁棒性","D":"定期对系统进行更新和升级"},"answer":"B"},
+            {"id":194,"question":"在AI系统运维中，如何保证系统可恢复性（）.","options":{"A":"利用备用服务器","B":"定期执行数据备份","C":"定期更新和升级操作系统","D":"以上三项都是"},"answer":"D"},
+            {"id":195,"question":"在AI系统运维中，如何处理异常情况（）.","options":{"A":"启动安全协议并保护系统","B":"添加额外的检查和验证步骤","C":"定期进行系统和数据库更新","D":"以上三项都是"},"answer":"B"},
+            {"id":197,"question":"AI系统为什么需要进行基线性能测试（）.","options":{"A":"为了确定系统瓶颈","B":"为了评估系统的性能","C":"为了监测系统的健康状态","D":"为了验证系统自动化部署是否成功"},"answer":"B"},
+            {"id":207,"question":"（）是将目标对象划分到事先设定的类别中的过程.","options":{"A":"分类","B":"聚类分析","C":"回归分析","D":"关联分析"},"answer":"A"},
+            {"id":208,"question":"分类模型的性能可以用（）等指标来评估.","options":{"A":"准确率和召回率","B":"准确率和错误率","C":"召回率和错误率","D":"敏感度和错误率"},"answer":"B"},
+            {"id":212,"question":"请问以下哪项工作不是在项目监控过程组的流程中执行的（）.","options":{"A":"制定风险管理计划","B":"控制范围","C":"控制进度","D":"控制成本"},"answer":"A"},
+            {"id":224,"question":"在（）阶段，根据手动检查或者数据样本抽取等数据分析方式，确立数据清洗和转换规则以及工作流程.","options":{"A":"明确错误类型","B":"识别错误实例","C":"纠正发现错误","D":"干净数据回流"},"answer":"A"},
+            {"id":225,"question":"在AI系统的运维中，监控数据存储在哪里（）.","options":{"A":"ROM","B":"RAM","C":"SSD","D":"HDD"},"answer":"C"},
+            {"id":235,"question":"在AI系统中完成模型训练后，我们需要将模型保存并将其用于推理.以下哪种格式可以实现跨平台使用（）.","options":{"A":".h5","B":".pt","C":".pb","D":".pth"},"answer":"C"},
+            {"id":236,"question":"以下哪种操作不属于AI系统的监控管理（）.","options":{"A":"记录日志信息","B":"监测模型性能","C":"备份数据","D":"调整模型参数"},"answer":"D"},
+            {"id":239,"question":"图像标注问题的本质是（）.","options":{"A":"文字到语言的问题","B":"视觉到文字的问题","C":"语言到文字的问题","D":"视觉到语言的问题"},"answer":"D"},
+            {"id":241,"question":"用于人流量统计的图像处理技术是（）.","options":{"A":"表情分析","B":"行为标注","C":"行人标注","D":"声纹识别"},"answer":"C"},
+            {"id":249,"question":"（）技术可以让计算机根据输入的图像或视频，在其中找寻所需目标的位置，并进行分类识别.","options":{"A":"语义分割","B":"实例分割","C":"图像分类/判断","D":"图像检测"},"answer":"D"},
+            {"id":250,"question":"（）的主要目的是从输入图像中检测出特定的对象，并为每个像素分配相应的类别标签.","options":{"A":"语义分割","B":"实例分割","C":"图像分类/判断","D":"图像检测"},"answer":"B"},
+            {"id":261,"question":"在AI系统部署过程中，以下哪个因素可能影响系统性能和安全性（）.","options":{"A":"硬件配置","B":"应用场景","C":"算法优化","D":"网络带宽"},"answer":"D"},
+            {"id":262,"question":"在AI系统中，以下哪个指标用于评估分类模型的性能（）.","options":{"A":"精确率","B":"召回率","C":"准确率","D":"F1-score"},"answer":"C"},
+            {"id":263,"question":"在AI系统中，以下哪个技术可以有效防止过拟合（）.","options":{"A":"数据增强","B":"正则化","C":"Dropout","D":"激活函数"},"answer":"B"},
+            {"id":264,"question":"在AI系统中，以下哪个技术可以最有效的应对数据不平衡问题（）.","options":{"A":"过采样","B":"欠采样","C":"样本加权","D":"集成学习"},"answer":"D"},
+            {"id":270,"question":"某家电商用人工智能技术对消费者行为进行分析和预测，从而优化其销售策略.这是哪种类型的人工智能应用（）.","options":{"A":"机器学习","B":"自然语言处理","C":"专家系统","D":"深度学习"},"answer":"A"},
+            {"id":271,"question":"能够自主控制车辆的无人驾驶技术是哪种类型的人工智能应用（）.","options":{"A":"机器学习","B":"专家系统","C":"深度学习","D":"自主决策"},"answer":"D"},
+            {"id":293,"question":"单元测试的测试用例编写需要参考（）.","options":{"A":"需求文档","B":"概要设计","C":"体系设计","D":"详细设计文档"},"answer":"D"},
+            {"id":299,"question":"以下哪种类型的人工智能应用在游戏领域最为常见（）.","options":{"A":"机器学习","B":"深度学习","C":"专家系统","D":"自然语言处理"},"answer":"B"},
+            {"id":302,"question":"零售业中，人工智能应用最常见的是（）.","options":{"A":"供应链管理","B":"营销推广","C":"商品推荐","D":"客户服务"},"answer":"C"},
+            {"id":304,"question":"人工智能在教育领域的主要作用是（）.","options":{"A":"个性化教学","B":"考试阅卷","C":"学生管理","D":"数据分析"},"answer":"A"},
+            {"id":305,"question":"人工智能在交通领域的主要应用是（）.","options":{"A":"自动驾驶技术","B":"实时交通监控","C":"运输调度","D":"客户服务"},"answer":"A"},
+            {"id":306,"question":"人工智能在农业领域的主要应用是（）.","options":{"A":"害虫监测","B":"农作物识别","C":"水资源管理","D":"预测产量"},"answer":"B"},
+            {"id":313,"question":"在（）任务中，我们需要分析影响决策的历史遗留问题以及预算情况.","options":{"A":"评价结果","B":"建立模型","C":"评估模型","D":"项目回顾"},"answer":"A"},
+            {"id":316,"question":"（）不属于数据可视化的主要作用.","options":{"A":"数据采集","B":"数据表达","C":"数据操作","D":"数据分析"},"answer":"A"},
+            {"id":336,"question":"无监督学习任务中，（）是最常见也是应用最广泛的研究领域.","options":{"A":"聚类","B":"分类","C":"回归","D":"关联分析"},"answer":"A"},
+            {"id":339,"question":"在以下哪个行业，人工智能应用较为广泛（）.","options":{"A":"金融行业","B":"电子行业","C":"教育行业","D":"农业行业"},"answer":"A"},
+            {"id":343,"question":"以下哪个领域尚未开始大规模应用人工智能技术（）.","options":{"A":"智慧城市","B":"自动驾驶","C":"金融领域","D":"工业4.0"},"answer":"D"},
+            {"id":368,"question":"要使用分组分析法，首先需要明确（）.","options":{"A":"确定合理的分组形式","B":"正确选择分组标志和分组指标","C":"确定组数和组距","D":"正确选择分组标志和划分各组界限"},"answer":"C"},
+            {"id":371,"question":"人工智能(AI)业务分析中，下列哪个工具用于探索数据集中的结构和模式（）.","options":{"A":"决策树","B":"聚类分析","C":"神经网络","D":"随机森林"},"answer":"B"},
+            {"id":372,"question":"下列哪个机器学习任务用于预测数值型输出变量（）.","options":{"A":"分类","B":"聚类","C":"回归","D":"降维"},"answer":"C"},
+            {"id":375,"question":"用户界面设计的核心元素之一是（），它决定了用户是否能够轻松地使用应用程序.","options":{"A":"简明","B":"熟悉","C":"易响应","D":"清晰度"},"answer":"D"},
+            {"id":384,"question":"在（）阶段，采用的设计方法提供了紧密联系并为用户和其他模型提供了设计框架.","options":{"A":"概念设计","B":"需求定义","C":"原型设计","D":"交互设计"},"answer":"B"},
+            {"id":385,"question":"在（）阶段明确各个设计元素的定义，并着重考虑信息和功能的呈现方式.","options":{"A":"定义需求","B":"交互设计","C":"概念设计","D":"修改设计"},"answer":"C"},
+            {"id":406,"question":"在人工智能(AI)业务分析中，下列哪个算法适用于大规模数据集（）.","options":{"A":"线性回归","B":"决策树","C":"K-近邻算法","D":"随机森林"},"answer":"D"},
+            {"id":407,"question":"在人工智能(AI)业务分析中，下列哪个关键词指的是通过学习一个规则集合来进行分类或回归（）.","options":{"A":"决策树","B":"聚类分析","C":"随机森林","D":"神经网络"},"answer":"A"},
+            {"id":411,"question":"以下（）不属于常用的预测分析法.","options":{"A":"回归分析法","B":"时间序列分析法","C":"神经网络","D":"交叉分析法"},"answer":"D"},
+            {"id":413,"question":"漏斗分析法是一种用于（）的数据分析方法.","options":{"A":"针对现状分析","B":"针对原因分析","C":"针对预测分析","D":"针对决策分析"},"answer":"A"},
+            {"id":424,"question":"在特征构建过程中，使用（）方法对定序变量进行数据类型编码.","options":{"A":"独热编码","B":"标签编码","C":"链式编码","D":"块状编码"},"answer":"B"},
+            {"id":425,"question":"在特征工程中，对数值型变量进行离散化处理，即（）.","options":{"A":"分箱操作","B":"回归操作","C":"递归操作","D":"聚合操作"},"answer":"A"},
+            {"id":434,"question":"如何防止在业务分析中的优化算法过拟合（）.","options":{"A":"采用Neon神经网络平台","B":"减少样本程序的复杂度","C":"增加数据集规模或增加维数","D":"通过学习率调整避免过拟合"},"answer":"C"},
+            {"id":435,"question":"如何在人工智能技术中处理采用不同的标准和数据格式的数据（）.","options":{"A":"在整个数据预处理过程中进行数据标准化","B":"通过转化算法将其转化为一致的模式","C":"进行全局分析，忽略数据源不同","D":"进行数据类型的编码以便于自动识别"},"answer":"B"},
+            {"id":436,"question":"何谓\"黑匣子\"模型（）.","options":{"A":"单层的神经网络模型","B":"无法解释其工作原理的模型","C":"只能进行简单预测的模型","D":"难以解释其部分功能的模型"},"answer":"B"}
+        ];
+
+        let userAnswers = {};
+        let currentMode = 'practice';
+        let submitted = false;
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            if (mode === 'exam') {
+                document.querySelectorAll('.answer-reveal').forEach(el => el.style.display = 'none');
+            }
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = questions.map(q => `
+                <div class="question-card" id="question-${q.id}">
+                    <div class="question-header">
+                        <span class="question-number">第 ${q.id} 题</span>
+                    </div>
+                    <div class="question-text">${q.question}</div>
+                    <div class="options">
+                        ${['A', 'B', 'C', 'D'].map(key => `
+                            <div class="option" onclick="selectOption(${q.id}, '${key}')">
+                                <span class="option-key">${key}</span>
+                                <span class="option-text">${q.options[key]}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="answer-reveal" id="answer-${q.id}">
+                        正确答案: ${q.answer}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectOption(questionId, optionKey) {
+            if (submitted && currentMode === 'exam') return;
+
+            userAnswers[questionId] = optionKey;
+            const card = document.getElementById(`question-${questionId}`);
+            const options = card.querySelectorAll('.option');
+
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[optionKey.charCodeAt(0) - 65].classList.add('selected');
+
+            updateStats();
+
+            if (currentMode === 'practice') {
+                const correct = questions.find(q => q.id === questionId).answer;
+                options.forEach((opt, i) => {
+                    opt.classList.remove('correct', 'wrong');
+                    if (i === correct.charCodeAt(0) - 65) {
+                        opt.classList.add('correct');
+                    } else if (i === optionKey.charCodeAt(0) - 65 && optionKey !== correct) {
+                        opt.classList.add('wrong');
+                    }
+                });
+                document.getElementById(`answer-${questionId}`).style.display = 'block';
+            }
+        }
+
+        function updateStats() {
+            const answered = Object.keys(userAnswers).length;
+            const correct = Object.entries(userAnswers).filter(([id, ans]) => {
+                const q = questions.find(q => q.id === parseInt(id));
+                return q && q.answer === ans;
+            }).length;
+
+            document.getElementById('answered').textContent = answered;
+            document.getElementById('progress').textContent = `${answered}/60`;
+            document.getElementById('accuracy').textContent = answered > 0 ? `${Math.round(correct/answered*100)}%` : '0%';
+            document.getElementById('progressFill').style.width = `${answered/60*100}%`;
+        }
+
+        function submitAll() {
+            submitted = true;
+            const answered = Object.keys(userAnswers).length;
+            const correct = Object.entries(userAnswers).filter(([id, ans]) => {
+                const q = questions.find(q => q.id === parseInt(id));
+                return q && q.answer === ans;
+            }).length;
+
+            questions.forEach(q => {
+                const card = document.getElementById(`question-${q.id}`);
+                const options = card.querySelectorAll('.option');
+                const userAns = userAnswers[q.id];
+
+                options.forEach((opt, i) => {
+                    opt.classList.remove('selected', 'correct', 'wrong');
+                    if (i === q.answer.charCodeAt(0) - 65) {
+                        opt.classList.add('correct');
+                    }
+                    if (userAns && i === userAns.charCodeAt(0) - 65 && userAns !== q.answer) {
+                        opt.classList.add('wrong');
+                    }
+                });
+                document.getElementById(`answer-${q.id}`).style.display = 'block';
+            });
+
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('resultModal').style.display = 'block';
+            document.getElementById('finalScore').textContent = `${correct}/60`;
+            document.getElementById('resultDetail').textContent = `正确率: ${Math.round(correct/60*100)}% | 已答: ${answered}题`;
+        }
+
+        function showAllAnswers() {
+            questions.forEach(q => {
+                document.getElementById(`answer-${q.id}`).style.display = 'block';
+            });
+        }
+
+        function resetAll() {
+            userAnswers = {};
+            submitted = false;
+            renderQuestions();
+            updateStats();
+        }
+
+        function closeModal() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('resultModal').style.display = 'none';
+        }
+
+        renderQuestions();
+    </script>
+</body>
+</html>
