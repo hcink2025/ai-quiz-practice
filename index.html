@@ -290,8 +290,8 @@
         </div>
 
         <div class="mode-selector">
-            <button class="mode-btn active" onclick="setMode('practice')">练习模式</button>
-            <button class="mode-btn" onclick="setMode('exam')">考试模式</button>
+            <button class="mode-btn active" onclick="setMode('practice')">顺序练习模式</button>
+            <button class="mode-btn" onclick="setMode('exam')">随机练习模式</button>
         </div>
 
         <div class="progress-bar">
@@ -394,22 +394,46 @@
         let userAnswers = {};
         let currentMode = 'practice';
         let submitted = false;
+        let shuffledQuestions = []; // 随机打乱后的题目顺序
+
+        // Fisher-Yates 洗牌算法
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
 
         function setMode(mode) {
             currentMode = mode;
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
+
+            // 切换模式时重置
+            userAnswers = {};
+            submitted = false;
+            document.getElementById('resultStats').classList.remove('show');
+
             if (mode === 'exam') {
-                document.querySelectorAll('.answer-reveal').forEach(el => el.style.display = 'none');
+                // 考试模式：打乱题目顺序
+                shuffledQuestions = shuffleArray(questions);
+                renderQuestions(shuffledQuestions);
+            } else {
+                // 练习模式：顺序显示
+                renderQuestions(questions);
             }
+            updateStats();
         }
 
-        function renderQuestions() {
+        function renderQuestions(questionList) {
+            const displayQuestions = questionList || questions;
             const container = document.getElementById('questionsContainer');
-            container.innerHTML = questions.map(q => `
+            container.innerHTML = displayQuestions.map((q, index) => `
                 <div class="question-card" id="question-${q.id}">
                     <div class="question-header">
-                        <span class="question-number">第 ${q.id} 题</span>
+                        <span class="question-number">${currentMode === 'exam' ? `第 ${index + 1} 题` : `第 ${q.id} 题`}</span>
                     </div>
                     <div class="question-text">${q.question}</div>
                     <div class="options">
@@ -519,7 +543,14 @@
             userAnswers = {};
             submitted = false;
             document.getElementById('resultStats').classList.remove('show');
-            renderQuestions();
+
+            if (currentMode === 'exam') {
+                // 考试模式：重新打乱题目
+                shuffledQuestions = shuffleArray(questions);
+                renderQuestions(shuffledQuestions);
+            } else {
+                renderQuestions(questions);
+            }
             updateStats();
         }
 
@@ -528,7 +559,8 @@
             document.getElementById('resultModal').style.display = 'none';
         }
 
-        renderQuestions();
+        // 初始化
+        renderQuestions(questions);
     </script>
 </body>
 </html>
