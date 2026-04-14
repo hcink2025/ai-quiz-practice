@@ -150,14 +150,6 @@
             box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
             z-index: 100;
         }
-        .bottom-progress {
-            padding: 10px 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-            text-align: center;
-            font-weight: bold;
-            color: #667eea;
-        }
         .result-stats {
             display: none;
             justify-content: center;
@@ -184,8 +176,14 @@
         .controls {
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 15px;
             padding: 15px 20px;
+        }
+        .progress-text {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 14px;
         }
         .btn {
             padding: 10px 25px;
@@ -197,19 +195,20 @@
             transition: all 0.2s ease;
         }
         .btn-primary {
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #28a745, #20c997);
             color: white;
         }
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
         }
         .btn-secondary {
-            background: #6c757d;
+            background: linear-gradient(90deg, #dc3545, #fd7e14);
             color: white;
         }
         .btn-secondary:hover {
-            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(220, 53, 69, 0.4);
         }
         .result-modal {
             display: none;
@@ -302,7 +301,6 @@
     </div>
 
     <div class="bottom-bar">
-        <div class="bottom-progress" id="bottomProgress">当前进度: 0/60</div>
         <div class="result-stats" id="resultStats">
             <div class="stat-item">
                 <div class="label">正确率</div>
@@ -314,6 +312,7 @@
             </div>
         </div>
         <div class="controls">
+            <span class="progress-text" id="bottomProgress">当前进度: 0/60</span>
             <button class="btn btn-primary" onclick="submitAll()">提交答案</button>
             <button class="btn btn-secondary" onclick="resetAll()">重新开始</button>
         </div>
